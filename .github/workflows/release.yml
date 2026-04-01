@@ -80,7 +80,9 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           mkdir -p staging
-          cp build/*/release/env staging/dotenv
+          binary=$(find build -name "env" -type f -executable | head -1)
+          echo "Found binary: $binary"
+          cp "$binary" staging/dotenv
           chmod +x staging/dotenv
           tar -czf ${{ matrix.artifact }}.tar.gz -C staging dotenv
 
