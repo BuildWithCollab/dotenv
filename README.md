@@ -1,4 +1,4 @@
-# `$ env` / `$ dotenv`
+# Collab `.env`
 
 A C++23 `.env` file library and CLI. Load environment variables from `.env`, `.env.yaml`, and `.env.json` files.
 
