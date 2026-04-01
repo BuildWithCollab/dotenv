@@ -12,7 +12,6 @@ using namespace collab::process;
 // ── helper: find the dotenv binary ───────────────────────────────────────
 
 static auto dotenv_exe() -> std::string {
-    // Deployed to ~/bin by after_build
     auto home = std::getenv("USERPROFILE");
     if (!home) home = std::getenv("HOME");
     if (home) {
@@ -84,17 +83,15 @@ TEST_CASE("cli: --version shows version", "[cli]") {
     CHECK(r->stdout_content.find("env ") != std::string::npos);
 }
 
-// ── print mode: no separator ─────────────────────────────────────────────
+// ── print mode: no args ──────────────────────────────────────────────────
 
-TEST_CASE("cli: no args prints full env including .env vars", "[cli]") {
+TEST_CASE("cli: no args prints full env with .env vars", "[cli]") {
     TempDir tmp;
     tmp.write(".env", "CLI_PRINT_TEST_XYZ=from_dotenv\n");
     auto r = run_dotenv(tmp.root, {});
     REQUIRE(r.has_value());
     CHECK(r->ok());
-    // Should contain the .env var
     CHECK(r->stdout_content.find("CLI_PRINT_TEST_XYZ=from_dotenv") != std::string::npos);
-    // Should also contain real env vars (PATH exists everywhere)
     CHECK(r->stdout_content.find("PATH=") != std::string::npos);
 }
 
@@ -103,113 +100,74 @@ TEST_CASE("cli: no args, no .env, still prints real env", "[cli]") {
     auto r = run_dotenv(tmp.root, {});
     REQUIRE(r.has_value());
     CHECK(r->ok());
-    // Should still have real env vars
     CHECK(r->stdout_content.find("PATH=") != std::string::npos);
 }
 
-TEST_CASE("cli: - alone prints real env without .env vars", "[cli]") {
+TEST_CASE("cli: -- alone prints full env WITHOUT .env vars", "[cli]") {
     TempDir tmp;
     tmp.write(".env", "SHOULD_NOT_APPEAR_XYZ=nope\n");
-    auto r = run_dotenv(tmp.root, {"-"});
+    auto r = run_dotenv(tmp.root, {"--"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
-    // Should NOT contain vars from .env
     CHECK(r->stdout_content.find("SHOULD_NOT_APPEAR_XYZ") == std::string::npos);
-    // Should still have real env vars
     CHECK(r->stdout_content.find("PATH=") != std::string::npos);
 }
 
-// ── -- separator: auto-load ON, run command ──────────────────────────────
+// ── no separator: auto-load ON, command auto-detected ────────────────────
 
-TEST_CASE("cli: -- runs command with auto-loaded env", "[cli]") {
+TEST_CASE("cli: no separator — command runs with auto-loaded env", "[cli]") {
     TempDir tmp;
     tmp.write(".env", "CLI_TEST_VAR=from_dotenv\n");
-    auto r = run_dotenv(tmp.root, {"--", "bash", "-c", "echo $CLI_TEST_VAR"});
+    auto r = run_dotenv(tmp.root, {"bash", "-c", "echo $CLI_TEST_VAR"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
     CHECK(r->stdout_content.find("from_dotenv") != std::string::npos);
 }
 
-TEST_CASE("cli: inline var before -- is passed to command", "[cli]") {
+TEST_CASE("cli: no separator — inline var + command", "[cli]") {
     TempDir tmp;
-    auto r = run_dotenv(tmp.root, {"INLINE=yes", "--", "bash", "-c", "echo $INLINE"});
+    auto r = run_dotenv(tmp.root, {"INLINE=yes", "bash", "-c", "echo $INLINE"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
     CHECK(r->stdout_content.find("yes") != std::string::npos);
 }
 
-TEST_CASE("cli: inline var + auto-load before --", "[cli]") {
+TEST_CASE("cli: no separator — inline var + auto-load + command", "[cli]") {
     TempDir tmp;
     tmp.write(".env", "FROM_FILE=hello\n");
-    auto r = run_dotenv(tmp.root, {"EXTRA=world", "--", "bash", "-c", "echo $FROM_FILE $EXTRA"});
+    auto r = run_dotenv(tmp.root, {"EXTRA=world", "bash", "-c", "echo $FROM_FILE $EXTRA"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
     CHECK(r->stdout_content.find("hello") != std::string::npos);
     CHECK(r->stdout_content.find("world") != std::string::npos);
 }
 
-TEST_CASE("cli: inline var overrides auto-loaded var", "[cli]") {
+TEST_CASE("cli: no separator — inline var overrides .env var", "[cli]") {
     TempDir tmp;
     tmp.write(".env", "FOO=from_file\n");
-    auto r = run_dotenv(tmp.root, {"FOO=overridden", "--", "bash", "-c", "echo $FOO"});
+    auto r = run_dotenv(tmp.root, {"FOO=overridden", "bash", "-c", "echo $FOO"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
     CHECK(r->stdout_content.find("overridden") != std::string::npos);
 }
 
-// ── - separator: auto-load OFF, run command ──────────────────────────────
-
-TEST_CASE("cli: - runs command without auto-loading", "[cli]") {
-    TempDir tmp;
-    tmp.write(".env", "SHOULD_NOT=load\n");
-    auto r = run_dotenv(tmp.root, {"-", "bash", "-c", "echo val=[$SHOULD_NOT]"});
-    REQUIRE(r.has_value());
-    CHECK(r->ok());
-    CHECK(r->stdout_content.find("val=[]") != std::string::npos);
-}
-
-TEST_CASE("cli: inline var before - is passed without auto-load", "[cli]") {
-    TempDir tmp;
-    tmp.write(".env", "AUTO=nope\n");
-    auto r = run_dotenv(tmp.root, {"MANUAL=yes", "-", "bash", "-c", "echo auto=[$AUTO] manual=$MANUAL"});
-    REQUIRE(r.has_value());
-    CHECK(r->ok());
-    CHECK(r->stdout_content.find("auto=[]") != std::string::npos);
-    CHECK(r->stdout_content.find("manual=yes") != std::string::npos);
-}
-
-// ── extra env files before separator ─────────────────────────────────────
-
-TEST_CASE("cli: extra .env file before -- loads it", "[cli]") {
+TEST_CASE("cli: no separator — extra .env file + command", "[cli]") {
     TempDir tmp;
     tmp.write(".env", "BASE=yes\n");
     tmp.write(".env.extra", "EXTRA=also\n");
-    auto r = run_dotenv(tmp.root, {".env.extra", "--", "bash", "-c", "echo $BASE $EXTRA"});
+    auto r = run_dotenv(tmp.root, {".env.extra", "bash", "-c", "echo $BASE $EXTRA"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
     CHECK(r->stdout_content.find("yes") != std::string::npos);
     CHECK(r->stdout_content.find("also") != std::string::npos);
 }
 
-TEST_CASE("cli: extra .env file before - loads without auto-load", "[cli]") {
-    TempDir tmp;
-    tmp.write(".env", "AUTO=nope\n");
-    tmp.write(".env.manual", "MANUAL=yes\n");
-    auto r = run_dotenv(tmp.root, {".env.manual", "-", "bash", "-c", "echo auto=[$AUTO] manual=$MANUAL"});
-    REQUIRE(r.has_value());
-    CHECK(r->ok());
-    CHECK(r->stdout_content.find("auto=[]") != std::string::npos);
-    CHECK(r->stdout_content.find("manual=yes") != std::string::npos);
-}
-
-// ── multiple files + inline vars before separator ────────────────────────
-
-TEST_CASE("cli: multiple files + inline before --", "[cli]") {
+TEST_CASE("cli: no separator — multiple files + inline + command", "[cli]") {
     TempDir tmp;
     tmp.write(".env", "A=auto\n");
     tmp.write(".env.one", "B=one\n");
     tmp.write(".env.two", "C=two\n");
-    auto r = run_dotenv(tmp.root, {".env.one", ".env.two", "D=four", "--", "bash", "-c", "echo $A $B $C $D"});
+    auto r = run_dotenv(tmp.root, {".env.one", ".env.two", "D=four", "bash", "-c", "echo $A $B $C $D"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
     CHECK(r->stdout_content.find("auto") != std::string::npos);
@@ -218,18 +176,70 @@ TEST_CASE("cli: multiple files + inline before --", "[cli]") {
     CHECK(r->stdout_content.find("four") != std::string::npos);
 }
 
+// ── -- separator: auto-load OFF ──────────────────────────────────────────
+
+TEST_CASE("cli: -- disables auto-load", "[cli]") {
+    TempDir tmp;
+    tmp.write(".env", "SHOULD_NOT=load\n");
+    auto r = run_dotenv(tmp.root, {"--", "bash", "-c", "echo val=[$SHOULD_NOT]"});
+    REQUIRE(r.has_value());
+    CHECK(r->ok());
+    CHECK(r->stdout_content.find("val=[]") != std::string::npos);
+}
+
+TEST_CASE("cli: inline var before -- works without auto-load", "[cli]") {
+    TempDir tmp;
+    tmp.write(".env", "AUTO=nope\n");
+    auto r = run_dotenv(tmp.root, {"MANUAL=yes", "--", "bash", "-c", "echo auto=[$AUTO] manual=$MANUAL"});
+    REQUIRE(r.has_value());
+    CHECK(r->ok());
+    CHECK(r->stdout_content.find("auto=[]") != std::string::npos);
+    CHECK(r->stdout_content.find("manual=yes") != std::string::npos);
+}
+
+TEST_CASE("cli: extra .env file before -- loads without auto-load", "[cli]") {
+    TempDir tmp;
+    tmp.write(".env", "AUTO=nope\n");
+    tmp.write(".env.manual", "MANUAL=yes\n");
+    auto r = run_dotenv(tmp.root, {".env.manual", "--", "bash", "-c", "echo auto=[$AUTO] manual=$MANUAL"});
+    REQUIRE(r.has_value());
+    CHECK(r->ok());
+    CHECK(r->stdout_content.find("auto=[]") != std::string::npos);
+    CHECK(r->stdout_content.find("manual=yes") != std::string::npos);
+}
+
+// ── -- after command is just a regular arg ───────────────────────────────
+
+TEST_CASE("cli: -- after command start is passed as arg", "[cli]") {
+    TempDir tmp;
+    auto r = run_dotenv(tmp.root, {"bash", "-c", "echo before -- after"});
+    REQUIRE(r.has_value());
+    CHECK(r->ok());
+    CHECK(r->stdout_content.find("before -- after") != std::string::npos);
+}
+
+TEST_CASE("cli: env file + inline + command + -- as arg to command", "[cli]") {
+    TempDir tmp;
+    tmp.write(".env.local", "X=1\n");
+    // .env.local X=1 some-cmd -- should run some-cmd with "--" as an arg
+    auto r = run_dotenv(tmp.root, {".env.local", "FOO=bar", "bash", "-c", "echo $X $FOO -- extra"});
+    REQUIRE(r.has_value());
+    CHECK(r->ok());
+    CHECK(r->stdout_content.find("1 bar -- extra") != std::string::npos);
+}
+
 // ── command exit code propagation ────────────────────────────────────────
 
 TEST_CASE("cli: propagates child exit code 0", "[cli]") {
     TempDir tmp;
-    auto r = run_dotenv(tmp.root, {"-", "bash", "-c", "exit 0"});
+    auto r = run_dotenv(tmp.root, {"bash", "-c", "exit 0"});
     REQUIRE(r.has_value());
     CHECK(r->exit_code == 0);
 }
 
 TEST_CASE("cli: propagates child exit code non-zero", "[cli]") {
     TempDir tmp;
-    auto r = run_dotenv(tmp.root, {"-", "bash", "-c", "exit 42"});
+    auto r = run_dotenv(tmp.root, {"bash", "-c", "exit 42"});
     REQUIRE(r.has_value());
     CHECK(r->exit_code == 42);
 }
@@ -238,7 +248,7 @@ TEST_CASE("cli: propagates child exit code non-zero", "[cli]") {
 
 TEST_CASE("cli: non-existent command returns error", "[cli]") {
     TempDir tmp;
-    auto r = run_dotenv(tmp.root, {"-", "this-command-does-not-exist-12345"});
+    auto r = run_dotenv(tmp.root, {"this-command-does-not-exist-12345"});
     REQUIRE(r.has_value());
     CHECK(!r->ok());
 }
@@ -250,7 +260,7 @@ TEST_CASE("cli: auto-load walks up directories, closest wins", "[cli]") {
     tmp.write(".env", "FOO=from_root\nROOT_ONLY=yes\n");
     tmp.write("child/.env", "FOO=from_child\n");
 
-    auto r = run_dotenv(tmp.root / "child", {"--", "bash", "-c", "echo foo=$FOO root=$ROOT_ONLY"});
+    auto r = run_dotenv(tmp.root / "child", {"bash", "-c", "echo foo=$FOO root=$ROOT_ONLY"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
     CHECK(r->stdout_content.find("foo=from_child") != std::string::npos);
@@ -262,7 +272,7 @@ TEST_CASE("cli: auto-load walks up directories, closest wins", "[cli]") {
 TEST_CASE("cli: variable expansion works in auto-loaded files", "[cli]") {
     TempDir tmp;
     tmp.write(".env", "HOST=localhost\nURL=http://${HOST}:8080\n");
-    auto r = run_dotenv(tmp.root, {"--", "bash", "-c", "echo $URL"});
+    auto r = run_dotenv(tmp.root, {"bash", "-c", "echo $URL"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
     CHECK(r->stdout_content.find("http://localhost:8080") != std::string::npos);
@@ -271,7 +281,7 @@ TEST_CASE("cli: variable expansion works in auto-loaded files", "[cli]") {
 TEST_CASE("cli: inline var with ${VAR} ref expands from auto-loaded", "[cli]") {
     TempDir tmp;
     tmp.write(".env", "HOST=localhost\n");
-    auto r = run_dotenv(tmp.root, {"URL=http://${HOST}:9090", "--", "bash", "-c", "echo $URL"});
+    auto r = run_dotenv(tmp.root, {"URL=http://${HOST}:9090", "bash", "-c", "echo $URL"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
     CHECK(r->stdout_content.find("http://localhost:9090") != std::string::npos);
@@ -279,7 +289,7 @@ TEST_CASE("cli: inline var with ${VAR} ref expands from auto-loaded", "[cli]") {
 
 TEST_CASE("cli: inline var with ${VAR} ref expands from other inline", "[cli]") {
     TempDir tmp;
-    auto r = run_dotenv(tmp.root, {"A=hello", "B=${A}-world", "--", "bash", "-c", "echo $B"});
+    auto r = run_dotenv(tmp.root, {"A=hello", "B=${A}-world", "bash", "-c", "echo $B"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
     CHECK(r->stdout_content.find("hello-world") != std::string::npos);
@@ -290,9 +300,21 @@ TEST_CASE("cli: inline var with ${VAR} ref expands from other inline", "[cli]") 
 TEST_CASE("cli: .env with \\r\\n line endings works", "[cli]") {
     TempDir tmp;
     tmp.write(".env", "FOO=bar\r\nBAZ=qux\r\n");
-    auto r = run_dotenv(tmp.root, {"--", "bash", "-c", "echo foo=$FOO baz=$BAZ"});
+    auto r = run_dotenv(tmp.root, {"bash", "-c", "echo foo=$FOO baz=$BAZ"});
     REQUIRE(r.has_value());
     CHECK(r->ok());
     CHECK(r->stdout_content.find("foo=bar") != std::string::npos);
     CHECK(r->stdout_content.find("baz=qux") != std::string::npos);
+}
+
+// ── .env file detection: strict filename matching ────────────────────────
+
+TEST_CASE("cli: file with 'env' in name but not .env pattern is treated as command", "[cli]") {
+    TempDir tmp;
+    // GenValObj.exe has "env" in it but doesn't match .env pattern
+    tmp.write("GenValObj.exe", "this is not an env file\n");
+    auto r = run_dotenv(tmp.root, {"FOO=bar", "bash", "-c", "echo $FOO"});
+    REQUIRE(r.has_value());
+    CHECK(r->ok());
+    CHECK(r->stdout_content.find("bar") != std::string::npos);
 }

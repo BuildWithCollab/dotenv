@@ -41,38 +41,37 @@ On Windows, both `env.exe` and `dotenv.exe` are the same binary. Use whichever y
 
 ```bash
 dotenv                                       # Print all env vars (with .env files)
-dotenv -                                     # Print all env vars (without .env files)
-dotenv -- cmd [args...]                      # Run command (with .env files)
-dotenv - cmd [args...]                       # Run command (without .env files)
-dotenv KEY=val .env.local -- cmd [args...]   # Extra vars/files, then run command
-dotenv KEY=val .env.local - cmd [args...]    # Same, but skip .env file loading
+dotenv --                                    # Print all env vars (without .env files)
+dotenv FOO=bar some-command [args...]        # Run command with env var
+dotenv .env.local FOO=bar some-cmd [args...] # Extra file + var, run command
+dotenv .env.local FOO=bar -- some-cmd        # Same, but skip .env auto-loading
+dotenv -h | --help                           # Show help
+dotenv --version                             # Show version
 ```
 
-**Separators:**
+**How arguments are parsed:**
 
-| Separator | .env file loading | What follows |
-|-----------|-------------------|--------------|
-| `--` | Automatic (walk to root) | The command to run |
-| `-` | Disabled | The command to run |
-| *(none)* | Automatic | *(nothing — print mode)* |
+Arguments are read left to right. Files named `.env` or starting with `.env.` (like `.env.local`) are collected as env files. `KEY=value` pairs are collected as inline vars. The first argument that is neither is the command — everything from that point on is passed to it.
 
-Everything before the separator is extra `.env` files or `KEY=value` pairs.
-Everything after the separator is the command to run.
+By default, `.env` files are automatically loaded from every parent directory up to the root. Use `--` to disable auto-loading — only files you list explicitly will be used. If `--` appears after the command has started, it's just passed to the command as a regular argument.
 
 ```bash
-# Load .env files from cwd to root, run your server
-dotenv -- node server.js
+# Just run a command — .env files are loaded automatically
+dotenv node server.js
 
-# Add a one-off variable
-dotenv DEBUG=true -- node server.js
+# Set a one-off variable
+dotenv DEBUG=true node server.js
 
-# Load a specific extra file on top of auto-discovered ones
-dotenv .env.local -- node server.js
+# Load an extra env file
+dotenv .env.local node server.js
 
-# Skip auto-loading entirely, just set one variable
-dotenv API_KEY=test123 - curl https://api.example.com
+# Skip auto-loading, only use what you specify
+dotenv API_KEY=test123 -- curl https://api.example.com
 
-# Just print what would be loaded
+# Pass -- to the command (it's after the command, so it's just an arg)
+dotenv node server.js -- --extra-flag
+
+# Just print the full environment
 dotenv
 ```
 
