@@ -1,31 +1,52 @@
-# Collab `.env`
+# dotenv 🗝️
 
-A C++23 `.env` file library and CLI. Load environment variables from `.env`, `.env.yaml`, and `.env.json` files.
+> In Bash, you can set environment variables inline:
+> ```bash
+> API_KEY=abc123 node server.js
+> ```
+> PowerShell can't do this. Even in 2026. Even in PowerShell 7.5.
+>
+> **Now it can.**
+>
+> ```powershell
+> env API_KEY=abc123 node server.js
+> ```
 
-Two things in one repo:
+Set env vars. Run commands. Load `.env` files. Works everywhere.
 
-| | What | For |
-|---|---|---|
-| **`collab-env`** | Static library | Any C++ project that wants to load `.env` files |
-| **`dotenv`** | CLI binary | Run any command with `.env` variables injected |
+```bash
+# Set variables and run a command
+env API_KEY=abc123 node server.js
+
+# .env files are loaded automatically from every parent directory
+env node server.js
+
+# Combine inline vars, extra .env files, and a command
+env .env.production DB_OVERRIDE=localhost node server.js
+
+# Just print the full environment (with .env files merged in)
+env
+```
+
+On macOS and Linux, the binary is named `dotenv` to avoid conflicting with the built-in `env`.
+
+Also available as a **C++23 static library** (`collab-env`) for loading `.env` files in your own projects — like Python's `python-dotenv`.
 
 ## Table of Contents
 
-- [CLI — `dotenv`](#cli--dotenv)
-  - [Install (binary)](#install-binary)
-  - [Usage](#usage)
+- [Install](#install)
+- [CLI Usage](#cli-usage)
+  - [How arguments are parsed](#how-arguments-are-parsed)
   - [How .env files are found](#how-env-files-are-found)
 - [Library — `collab-env`](#library--collab-env)
   - [Quick Start](#quick-start)
   - [Install (library)](#install-library)
   - [API Reference](#api-reference)
 - [File Formats](#file-formats)
-- [Building](#building)
+- [Building from Source](#building-from-source)
 - [Testing](#testing)
 
-## CLI — `dotenv`
-
-### Install (binary)
+## Install
 
 Download from [Releases](https://github.com/BuildWithCollab/dotenv/releases) and put it on your PATH.
 
@@ -35,49 +56,51 @@ Download from [Releases](https://github.com/BuildWithCollab/dotenv/releases) and
 | Linux | `dotenv-linux-x64.tar.gz` | `dotenv` |
 | macOS | `dotenv-macos-arm64.tar.gz` | `dotenv` |
 
-On Windows, both `env.exe` and `dotenv.exe` are the same binary. Use whichever you prefer — `dotenv` avoids conflicts with Git Bash's built-in `env`.
+On Windows, both names are the same binary. `env` is shorter. `dotenv` avoids conflicts with Git Bash's built-in `env`.
 
-### Usage
+## CLI Usage
 
 ```bash
-dotenv                                       # Print all env vars (with .env files)
-dotenv --                                    # Print all env vars (without .env files)
-dotenv FOO=bar some-command [args...]        # Run command with env var
-dotenv .env.local FOO=bar some-cmd [args...] # Extra file + var, run command
-dotenv .env.local FOO=bar -- some-cmd        # Same, but skip .env auto-loading
-dotenv -h | --help                           # Show help
-dotenv --version                             # Show version
+env FOO=bar some-command [args...]            # Set vars + run command
+env .env.local FOO=bar some-cmd [args...]     # Extra file + vars + run command
+env .env.local FOO=bar -- some-cmd [args...]  # Same, but skip .env auto-loading
+env                                           # Print all env vars (with .env files)
+env --                                        # Print all env vars (without .env files)
+env -h | --help                               # Show help
+env --version                                 # Show version
 ```
 
-**How arguments are parsed:**
+### How arguments are parsed
 
-Arguments are read left to right. Files named `.env` or starting with `.env.` (like `.env.local`) are collected as env files. `KEY=value` pairs are collected as inline vars. The first argument that is neither is the command — everything from that point on is passed to it.
+Arguments are read left to right:
 
-By default, `.env` files are automatically loaded from every parent directory up to the root. Use `--` to disable auto-loading — only files you list explicitly will be used. If `--` appears after the command has started, it's just passed to the command as a regular argument.
+- Files named `.env` or starting with `.env.` (like `.env.local`, `.env.production`) → **env file**
+- `KEY=value` → **inline variable**
+- Anything else → **command starts here** (everything from this point is passed to it)
 
 ```bash
 # Just run a command — .env files are loaded automatically
-dotenv node server.js
+env node server.js
 
-# Set a one-off variable
-dotenv DEBUG=true node server.js
+# Set one-off variables
+env DEBUG=true PORT=3000 node server.js
 
-# Load an extra env file
-dotenv .env.local node server.js
+# Load an extra env file on top of auto-discovered ones
+env .env.local node server.js
 
-# Skip auto-loading, only use what you specify
-dotenv API_KEY=test123 -- curl https://api.example.com
+# Skip auto-loading, only use what you list
+env API_KEY=test123 -- curl https://api.example.com
 
-# Pass -- to the command (it's after the command, so it's just an arg)
-dotenv node server.js -- --extra-flag
+# -- after the command starts is just a regular arg
+env node server.js -- --extra-flag
 
 # Just print the full environment
-dotenv
+env
 ```
 
 ### How .env files are found
 
-Starting from your current directory, `dotenv` looks in every parent directory all the way up to the filesystem root. If a `.env`, `.env.yaml`, `.env.yml`, or `.env.json` file exists in any of those directories, it gets loaded.
+Starting from your current directory, `env` checks every parent directory all the way up to the filesystem root. If a `.env`, `.env.yaml`, `.env.yml`, or `.env.json` file exists in any of those directories, it gets loaded.
 
 When the same variable appears in multiple files, the **closest file to your current directory wins**.
 
@@ -87,7 +110,9 @@ C:\projects\myapp\          .env.yaml     ← loaded second
 C:\projects\myapp\backend\  .env.json     ← loaded last (highest priority, you are here)
 ```
 
-This means a project-level `.env` can set defaults, and a subdirectory `.env` can override them. Setting a variable to empty (`KEY=` or `"KEY": ""`) unsets it.
+A project-level `.env` can set defaults. A subdirectory `.env` can override them. Setting a variable to empty (`KEY=` or `"KEY": ""`) unsets it.
+
+Use `--` to disable auto-loading entirely — only files you list explicitly will be used.
 
 ## Library — `collab-env`
 
@@ -291,7 +316,7 @@ auto apply(const std::vector<EnvVar>& vars) -> void;
 | `# comment` | Ignored (`.env` format only) |
 | `export KEY=value` | Optional `export` prefix accepted (`.env` format only) |
 
-## Building
+## Building from Source
 
 Requires C++23. Uses [xmake](https://xmake.io).
 
