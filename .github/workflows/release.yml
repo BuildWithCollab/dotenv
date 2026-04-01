@@ -80,7 +80,7 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           mkdir -p staging
-          binary=$(find build -name "env" -type f -executable | head -1)
+          binary=$(find build -name "env" -type f -not -name "*.cpp" -not -name "*.o" -not -name "*.d" | head -1)
           echo "Found binary: $binary"
           cp "$binary" staging/dotenv
           chmod +x staging/dotenv
