@@ -36,6 +36,7 @@ struct TempDir {
             std::hash<std::string>{}(std::to_string(
                 std::chrono::steady_clock::now().time_since_epoch().count()))));
         fs::create_directories(root);
+        root = fs::canonical(root);
     }
 
     ~TempDir() { fs::remove_all(root); }
