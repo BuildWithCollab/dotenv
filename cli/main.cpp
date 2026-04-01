@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
             return 0;
         }
         if (arg == "--version") {
-            std::cout << "env " << collab::env::version_string << "\n";
+            std::cout << "env " << collab::env::version.to_string() << "\n";
             return 0;
         }
     }
