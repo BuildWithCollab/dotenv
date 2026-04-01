@@ -1,0 +1,9 @@
+# C++
+build
+compile_commands
+.xmake
+
+# Agent handoff documents (keep local, never commit)
+*HANDOFF*
+*handoff*
+*Handoff*
