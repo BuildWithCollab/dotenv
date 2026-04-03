@@ -5,7 +5,7 @@ Set env vars. Run commands. Load `.env` files. Every platform.
 > `env API_KEY=abc123 node server.js` — works on Windows. Finally.
 
 ```bash
-env API_KEY=abc123 node server.js          # set vars + run command
+env API_KEY=abc123 node server.js           # set vars + run command
 env .env.local DB=localhost node server.js  # extra .env file + vars + run
 env node server.js                          # auto-load .env files + run
 env                                         # print full environment
