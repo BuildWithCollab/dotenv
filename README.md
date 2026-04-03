@@ -1,36 +1,19 @@
-# dotenv 🗝️
+# dotenv 🔧
 
-> In Bash, you can set environment variables inline:
-> ```bash
-> API_KEY=abc123 node server.js
-> ```
-> PowerShell can't do this. Even in 2026. Even in PowerShell 7.5.
->
-> **Now it can.**
->
-> ```powershell
-> env API_KEY=abc123 node server.js
-> ```
+Set env vars. Run commands. Load `.env` files. Every platform.
 
-Set env vars. Run commands. Load `.env` files. Works everywhere.
+> `env API_KEY=abc123 node server.js` — works on Windows. Finally.
 
 ```bash
-# Set variables and run a command
-env API_KEY=abc123 node server.js
-
-# .env files are loaded automatically from every parent directory
-env node server.js
-
-# Combine inline vars, extra .env files, and a command
-env .env.production DB_OVERRIDE=localhost node server.js
-
-# Just print the full environment (with .env files merged in)
-env
+env API_KEY=abc123 node server.js          # set vars + run command
+env .env.local DB=localhost node server.js  # extra .env file + vars + run
+env node server.js                          # auto-load .env files + run
+env                                         # print full environment
 ```
 
 On macOS and Linux, the binary is named `dotenv` to avoid conflicting with the built-in `env`.
 
-Also available as a **C++23 static library** (`collab-env`) for loading `.env` files in your own projects — like Python's `python-dotenv`.
+Also ships as **`libdotenv`**, a C++23 static library for loading `.env` files in your own projects — like Python's `python-dotenv`.
 
 ## Table of Contents
 
@@ -38,7 +21,7 @@ Also available as a **C++23 static library** (`collab-env`) for loading `.env` f
 - [CLI Usage](#cli-usage)
   - [How arguments are parsed](#how-arguments-are-parsed)
   - [How .env files are found](#how-env-files-are-found)
-- [Library — `collab-env`](#library--collab-env)
+- [Library — `libdotenv`](#library--libdotenv)
   - [Quick Start](#quick-start)
   - [Install (library)](#install-library)
   - [API Reference](#api-reference)
@@ -114,7 +97,7 @@ A project-level `.env` can set defaults. A subdirectory `.env` can override them
 
 Use `--` to disable auto-loading entirely — only files you list explicitly will be used.
 
-## Library — `collab-env`
+## Library — `libdotenv`
 
 ### Quick Start
 
