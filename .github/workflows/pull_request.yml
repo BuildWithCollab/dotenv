@@ -77,4 +77,4 @@ jobs:
         run: xmake build
 
       - name: Run tests
-        run: xmake run collab-env-tests
+        run: xmake run dotenv-tests

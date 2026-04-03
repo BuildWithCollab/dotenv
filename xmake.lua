@@ -4,6 +4,10 @@ add_rules("mode.release")
 set_defaultmode("release")
 set_languages("c++23")
 
+if is_plat("windows") then
+    set_runtimes("MT")
+end
+
 includes("xmake/collab.lua")
 
 -- BuildWithCollab package registry
@@ -31,7 +35,7 @@ end
 
 add_requires("nlohmann_json", "yaml-cpp")
 
-target("collab-env")
+target("dotenv")
     set_kind("static")
     add_headerfiles("include/(**.hpp)")
     add_includedirs("include", { public = true })
@@ -43,7 +47,7 @@ if get_config("build_executable") then
     target("env")
         set_kind("binary")
         add_files("cli/main.cpp")
-        add_deps("collab-env")
+        add_deps("dotenv")
         add_collab_packages("collab-process")
         set_rundir("$(projectdir)")
         after_build(function (target)

@@ -77,7 +77,7 @@ jobs:
         run: xmake build
 
       - name: Run tests
-        run: xmake run collab-env-tests
+        run: xmake run dotenv-tests
 
       - name: Notify Slack on Failure
         if: failure()
