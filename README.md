@@ -276,7 +276,7 @@ auto apply(const std::vector<EnvironmentVariable>& vars) -> void;
 │ DB_HOST=localhost      │   │ DB_HOST: localhost     │
 │ DB_PORT=5432           │   │ DB_PORT: 5432          │
 │ SECRET="my secret"     │   │ SECRET: my secret      │
-│ # comment              │   │                        │
+│ # comment              │   │ # comment              │
 │ UNSET_ME=              │   │ UNSET_ME:              │
 └────────────────────────┘   └────────────────────────┘
 
