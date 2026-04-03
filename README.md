@@ -21,11 +21,11 @@ Also available as a C++23 static library for loading `.env` files in your own pr
 - [CLI Usage](#cli-usage)
   - [How arguments are parsed](#how-arguments-are-parsed)
   - [How .env files are found](#how-env-files-are-found)
+- [File Formats](#file-formats)
 - [Library — `dotenv`](#library--dotenv)
   - [Quick Start](#quick-start)
   - [Install (library)](#install-library)
   - [API Reference](#api-reference)
-- [File Formats](#file-formats)
 - [Building from Source](#building-from-source)
 - [Testing](#testing)
 
@@ -96,6 +96,37 @@ C:\projects\myapp\backend\  .env.json     ← loaded last (highest priority, you
 A project-level `.env` can set defaults. A subdirectory `.env` can override them. Setting a variable to empty (`KEY=` or `"KEY": ""`) unsets it.
 
 Use `--` to disable auto-loading entirely — only files you list explicitly will be used.
+
+## File Formats
+
+```
+.env                         .env.yaml / .env.yml
+┌────────────────────────┐   ┌────────────────────────┐
+│ DB_HOST=localhost      │   │ DB_HOST: localhost     │
+│ DB_PORT=5432           │   │ DB_PORT: 5432          │
+│ SECRET="my secret"     │   │ SECRET: my secret      │
+│ # comment              │   │ # comment              │
+│ UNSET_ME=              │   │ UNSET_ME:              │
+└────────────────────────┘   └────────────────────────┘
+
+.env.json                      Variable references
+┌────────────────────────────┐ ┌────────────────────────────────┐
+│ {                          │ │ HOST=localhost                 │
+│   "DB_HOST": "localhost",  │ │ PORT=5432                      │
+│   "DB_PORT": 5432,         │ │ URL=http://${HOST}:${PORT}     │
+│   "SECRET": "my secret",   │ └────────────────────────────────┘
+│   "UNSET_ME": ""           │
+│ }                          │
+└────────────────────────────┘
+```
+
+| Syntax | Meaning |
+|--------|---------|
+| `KEY=value` | Set a variable |
+| `KEY=` | Unset a variable (empty value removes it) |
+| `${VAR}` | Reference another variable (from .env files or real env) |
+| `# comment` | Ignored (`.env` format only) |
+| `export KEY=value` | Optional `export` prefix accepted (`.env` format only) |
 
 ## Library — `dotenv`
 
@@ -267,37 +298,6 @@ auto apply(const std::vector<EnvironmentVariable>& vars) -> void;
 | `merge` | Deduplicate by key (case-insensitive). Last write wins. First occurrence's position and key name are preserved. |
 | `expand` | Resolve `${VAR}` references. Looks in the vars list first (case-insensitive), then falls back to the real environment. Iterates until stable (max 20 passes). |
 | `apply` | Set each var in the current process environment. Empty value = unset. |
-
-## File Formats
-
-```
-.env                         .env.yaml / .env.yml
-┌────────────────────────┐   ┌────────────────────────┐
-│ DB_HOST=localhost      │   │ DB_HOST: localhost     │
-│ DB_PORT=5432           │   │ DB_PORT: 5432          │
-│ SECRET="my secret"     │   │ SECRET: my secret      │
-│ # comment              │   │ # comment              │
-│ UNSET_ME=              │   │ UNSET_ME:              │
-└────────────────────────┘   └────────────────────────┘
-
-.env.json                      Variable references
-┌────────────────────────────┐ ┌────────────────────────────────┐
-│ {                          │ │ HOST=localhost                 │
-│   "DB_HOST": "localhost",  │ │ PORT=5432                      │
-│   "DB_PORT": 5432,         │ │ URL=http://${HOST}:${PORT}     │
-│   "SECRET": "my secret",   │ └────────────────────────────────┘
-│   "UNSET_ME": ""           │
-│ }                          │
-└────────────────────────────┘
-```
-
-| Syntax | Meaning |
-|--------|---------|
-| `KEY=value` | Set a variable |
-| `KEY=` | Unset a variable (empty value removes it) |
-| `${VAR}` | Reference another variable (from .env files or real env) |
-| `# comment` | Ignored (`.env` format only) |
-| `export KEY=value` | Optional `export` prefix accepted (`.env` format only) |
 
 ## Building from Source
 
