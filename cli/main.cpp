@@ -129,7 +129,10 @@ int main(int argc, char* argv[]) {
             return 0;
         }
         if (arg == "--version") {
-            std::cout << "env " << dotenv::version.to_string() << "\n";
+            std::cout << "dotenv " << dotenv::version.to_string() << "\n"
+                      << "\n"
+                      << "License 0BSD\n"
+                      << "https://github.com/BuildWithCollab/dotenv\n";
             return 0;
         }
     }
