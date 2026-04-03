@@ -136,10 +136,10 @@ add_repositories("BuildWithCollab https://github.com/BuildWithCollab/Packages.gi
 Then require and use the package:
 
 ```lua
-add_requires("collab-env")
+add_requires("libdotenv")
 
 target("myapp")
-    add_packages("collab-env")
+    add_packages("libdotenv")
 ```
 
 #### CMake / vcpkg
@@ -160,7 +160,7 @@ Custom registries for vcpkg are a bit more involved, but still easy to set up. Y
             "kind": "git",
             "repository": "https://github.com/BuildWithCollab/Packages.git",
             "baseline": "<latest-packages-commit-hash>",
-            "packages": ["collab-core", "collab-env"]
+            "packages": ["collab-core", "libdotenv"]
         }
     ]
 }
@@ -186,7 +186,7 @@ git ls-remote https://github.com/microsoft/vcpkg.git HEAD
 {
     "name": "my-project",
     "version-string": "0.0.1",
-    "dependencies": ["collab-env"]
+    "dependencies": ["libdotenv"]
 }
 ```
 
@@ -195,8 +195,8 @@ git ls-remote https://github.com/microsoft/vcpkg.git HEAD
 **`CMakeLists.txt`**:
 
 ```cmake
-find_package(collab-env CONFIG REQUIRED)
-target_link_libraries(myapp PRIVATE collab::collab-env)
+find_package(libdotenv CONFIG REQUIRED)
+target_link_libraries(myapp PRIVATE collab::libdotenv)
 ```
 
 For more details, see the [Packages registry README](https://github.com/BuildWithCollab/Packages).
@@ -312,13 +312,13 @@ xmake -y
 Tests use [Catch2](https://github.com/catchorg/Catch2).
 
 ```bash
-xmake run collab-env-tests                         # run all tests
-xmake run collab-env-tests "[parse_dotenv]"        # just dotenv parsing
-xmake run collab-env-tests "[parse_yaml]"          # just yaml parsing
-xmake run collab-env-tests "[parse_json]"          # just json parsing
-xmake run collab-env-tests "[merge]"               # just merge logic
-xmake run collab-env-tests "[expand]"              # just variable expansion
-xmake run collab-env-tests "[load]"                # just file loading + discovery
-xmake run collab-env-tests "[apply]"               # just env application
-xmake run collab-env-tests "[cli]"                 # just CLI integration tests
+xmake run libdotenv-tests                         # run all tests
+xmake run libdotenv-tests "[parse_dotenv]"        # just dotenv parsing
+xmake run libdotenv-tests "[parse_yaml]"          # just yaml parsing
+xmake run libdotenv-tests "[parse_json]"          # just json parsing
+xmake run libdotenv-tests "[merge]"               # just merge logic
+xmake run libdotenv-tests "[expand]"              # just variable expansion
+xmake run libdotenv-tests "[load]"                # just file loading + discovery
+xmake run libdotenv-tests "[apply]"               # just env application
+xmake run libdotenv-tests "[cli]"                 # just CLI integration tests
 ```
