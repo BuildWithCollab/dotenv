@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <collab/env/parse.hpp>
+#include <dotenv/parse.hpp>
 
-using namespace collab::env;
+using namespace dotenv;
 
 // ── empty / whitespace / comments ────────────────────────────────────────
 

@@ -5,9 +5,9 @@
 #include <unordered_map>
 #include <vector>
 
-namespace collab::env::detail {
+namespace dotenv::detail {
 
-auto merge(std::vector<EnvVar> vars) -> std::vector<EnvVar> {
+auto merge(std::vector<EnvironmentVariable> vars) -> std::vector<EnvironmentVariable> {
     // Forward walk: track first position of each key (case-insensitive).
     // Always update value to last occurrence.
     struct Entry {
@@ -33,7 +33,7 @@ auto merge(std::vector<EnvVar> vars) -> std::vector<EnvVar> {
     }
 
     // Collect entries sorted by first_pos (preserves insertion order)
-    std::vector<std::pair<size_t, EnvVar>> ordered;
+    std::vector<std::pair<size_t, EnvironmentVariable>> ordered;
     ordered.reserve(map.size());
     for (auto& [_, entry] : map)
         ordered.push_back({entry.first_pos, {std::move(entry.original_key), std::move(entry.value)}});
@@ -41,7 +41,7 @@ auto merge(std::vector<EnvVar> vars) -> std::vector<EnvVar> {
     std::sort(ordered.begin(), ordered.end(),
               [](auto& a, auto& b) { return a.first < b.first; });
 
-    std::vector<EnvVar> result;
+    std::vector<EnvironmentVariable> result;
     result.reserve(ordered.size());
     for (auto& [_, ev] : ordered)
         result.push_back(std::move(ev));
@@ -49,4 +49,4 @@ auto merge(std::vector<EnvVar> vars) -> std::vector<EnvVar> {
     return result;
 }
 
-}  // namespace collab::env::detail
+}  // namespace dotenv::detail

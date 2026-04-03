@@ -1,13 +1,13 @@
-#include <collab/env/parse.hpp>
+#include <dotenv/parse.hpp>
 
 #include <yaml-cpp/yaml.h>
 
 #include <sstream>
 
-namespace collab::env {
+namespace dotenv {
 
-auto parse_yaml(std::string_view content) -> std::vector<EnvVar> {
-    std::vector<EnvVar> vars;
+auto parse_yaml(std::string_view content) -> std::vector<EnvironmentVariable> {
+    std::vector<EnvironmentVariable> vars;
     if (content.empty()) return vars;
 
     try {
@@ -40,4 +40,4 @@ auto parse_yaml(std::string_view content) -> std::vector<EnvVar> {
     return vars;
 }
 
-}  // namespace collab::env
+}  // namespace dotenv

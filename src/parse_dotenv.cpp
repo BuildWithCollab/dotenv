@@ -1,12 +1,12 @@
-#include <collab/env/parse.hpp>
+#include <dotenv/parse.hpp>
 
 #include <sstream>
 #include <string>
 
-namespace collab::env {
+namespace dotenv {
 
-auto parse_dotenv(std::string_view content) -> std::vector<EnvVar> {
-    std::vector<EnvVar> vars;
+auto parse_dotenv(std::string_view content) -> std::vector<EnvironmentVariable> {
+    std::vector<EnvironmentVariable> vars;
     std::istringstream stream{std::string(content)};
     std::string line;
 
@@ -63,4 +63,4 @@ auto parse_dotenv(std::string_view content) -> std::vector<EnvVar> {
     return vars;
 }
 
-}  // namespace collab::env
+}  // namespace dotenv

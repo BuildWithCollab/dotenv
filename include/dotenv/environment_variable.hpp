@@ -3,11 +3,11 @@
 #include <string>
 #include <vector>
 
-namespace collab::env {
+namespace dotenv {
 
-struct EnvVar {
+struct EnvironmentVariable {
     std::string key;
     std::string value;
 };
 
-}  // namespace collab::env
+}  // namespace dotenv

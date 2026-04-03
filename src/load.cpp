@@ -1,5 +1,5 @@
-#include <collab/env/load.hpp>
-#include <collab/env/parse.hpp>
+#include <dotenv/load.hpp>
+#include <dotenv/parse.hpp>
 #include "expand.hpp"
 #include "merge.hpp"
 
@@ -10,7 +10,7 @@
 
 namespace fs = std::filesystem;
 
-namespace collab::env {
+namespace dotenv {
 
 // ── env file names we look for in each directory ─────────────────────────
 
@@ -23,7 +23,7 @@ static constexpr std::array env_filenames = {
 
 // ── load_file ────────────────────────────────────────────────────────────
 
-auto load_file(const fs::path& path) -> std::vector<EnvVar> {
+auto load_file(const fs::path& path) -> std::vector<EnvironmentVariable> {
     if (!fs::exists(path)) return {};
 
     std::ifstream f(path);
@@ -70,10 +70,10 @@ auto find_env_files(const fs::path& from) -> std::vector<fs::path> {
 
 // ── load ─────────────────────────────────────────────────────────────────
 
-auto load(const fs::path& from) -> std::vector<EnvVar> {
+auto load(const fs::path& from) -> std::vector<EnvironmentVariable> {
     auto files = find_env_files(from);
 
-    std::vector<EnvVar> all_vars;
+    std::vector<EnvironmentVariable> all_vars;
     for (auto& file : files) {
         auto file_vars = load_file(file);
         all_vars.insert(all_vars.end(), file_vars.begin(), file_vars.end());
@@ -86,19 +86,19 @@ auto load(const fs::path& from) -> std::vector<EnvVar> {
 
 // ── merge (public) ───────────────────────────────────────────────────────
 
-auto merge(std::vector<EnvVar> vars) -> std::vector<EnvVar> {
+auto merge(std::vector<EnvironmentVariable> vars) -> std::vector<EnvironmentVariable> {
     return detail::merge(std::move(vars));
 }
 
 // ── expand (public) ──────────────────────────────────────────────────────
 
-auto expand(std::vector<EnvVar>& vars) -> void {
+auto expand(std::vector<EnvironmentVariable>& vars) -> void {
     detail::expand(vars);
 }
 
 // ── apply ────────────────────────────────────────────────────────────────
 
-auto apply(const std::vector<EnvVar>& vars) -> void {
+auto apply(const std::vector<EnvironmentVariable>& vars) -> void {
     for (auto& v : vars) {
         if (v.value.empty()) {
 #ifdef _WIN32
@@ -116,4 +116,4 @@ auto apply(const std::vector<EnvVar>& vars) -> void {
     }
 }
 
-}  // namespace collab::env
+}  // namespace dotenv

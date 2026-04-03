@@ -2,8 +2,8 @@
 
 #include "merge.hpp"
 
-using namespace collab::env;
-using namespace collab::env::detail;
+using namespace dotenv;
+using namespace dotenv::detail;
 
 // ── basic behavior ───────────────────────────────────────────────────────
 

@@ -18,7 +18,7 @@
     #include <windows.h>
 #endif
 
-#include <collab/env.hpp>
+#include <dotenv.hpp>
 #include <collab/process.hpp>
 
 #include <cstring>
@@ -28,7 +28,7 @@
 #include <vector>
 
 namespace fs = std::filesystem;
-using namespace collab::env;
+using namespace dotenv;
 
 // ── helpers ──────────────────────────────────────────────────────────────
 
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
             return 0;
         }
         if (arg == "--version") {
-            std::cout << "env " << collab::env::version.to_string() << "\n";
+            std::cout << "env " << dotenv::version.to_string() << "\n";
             return 0;
         }
     }
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     bool auto_load = true;
     std::vector<std::string> extra_files;
-    std::vector<EnvVar> inline_vars;
+    std::vector<EnvironmentVariable> inline_vars;
     std::vector<std::string> cmd_args;
 
     for (int i = 1; i < argc; i++) {
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
 
     // ── Load env vars ────────────────────────────────────────────────────
 
-    std::vector<EnvVar> vars;
+    std::vector<EnvironmentVariable> vars;
 
     if (auto_load) {
         auto files = find_env_files();
@@ -194,9 +194,9 @@ int main(int argc, char* argv[]) {
 
     vars.insert(vars.end(), inline_vars.begin(), inline_vars.end());
 
-    vars = collab::env::merge(std::move(vars));
-    collab::env::expand(vars);
-    collab::env::apply(vars);
+    vars = dotenv::merge(std::move(vars));
+    dotenv::expand(vars);
+    dotenv::apply(vars);
 
     // ── No command → print mode ──────────────────────────────────────────
 

@@ -13,7 +13,7 @@ env                                         # print full environment
 
 On macOS and Linux, the binary is named `dotenv` to avoid conflicting with the built-in `env`.
 
-Also ships as **`libdotenv`**, a C++23 static library for loading `.env` files in your own projects — like Python's `python-dotenv`.
+Also available as a C++23 static library for loading `.env` files in your own projects — like Python's `python-dotenv`.
 
 ## Table of Contents
 
@@ -21,7 +21,7 @@ Also ships as **`libdotenv`**, a C++23 static library for loading `.env` files i
 - [CLI Usage](#cli-usage)
   - [How arguments are parsed](#how-arguments-are-parsed)
   - [How .env files are found](#how-env-files-are-found)
-- [Library — `libdotenv`](#library--libdotenv)
+- [Library — `dotenv`](#library--dotenv)
   - [Quick Start](#quick-start)
   - [Install (library)](#install-library)
   - [API Reference](#api-reference)
@@ -97,18 +97,18 @@ A project-level `.env` can set defaults. A subdirectory `.env` can override them
 
 Use `--` to disable auto-loading entirely — only files you list explicitly will be used.
 
-## Library — `libdotenv`
+## Library — `dotenv`
 
 ### Quick Start
 
 ```cpp
-#include <collab/env.hpp>
+#include <dotenv.hpp>
 
 // Load all .env files from cwd to root, merged and expanded
-auto vars = collab::env::load();
+auto vars = dotenv::load();
 
 // Apply them to the current process environment
-collab::env::apply(vars);
+dotenv::apply(vars);
 ```
 
 That's the two-liner equivalent of Python's `load_dotenv()`.
@@ -116,7 +116,7 @@ That's the two-liner equivalent of Python's `load_dotenv()`.
 If you just want the data without touching the environment:
 
 ```cpp
-auto vars = collab::env::load();
+auto vars = dotenv::load();
 for (auto& v : vars)
     std::cout << v.key << "=" << v.value << "\n";
 ```
@@ -136,10 +136,10 @@ add_repositories("BuildWithCollab https://github.com/BuildWithCollab/Packages.gi
 Then require and use the package:
 
 ```lua
-add_requires("libdotenv")
+add_requires("dotenv")
 
 target("myapp")
-    add_packages("libdotenv")
+    add_packages("dotenv")
 ```
 
 #### CMake / vcpkg
@@ -160,7 +160,7 @@ Custom registries for vcpkg are a bit more involved, but still easy to set up. Y
             "kind": "git",
             "repository": "https://github.com/BuildWithCollab/Packages.git",
             "baseline": "<latest-packages-commit-hash>",
-            "packages": ["collab-core", "libdotenv"]
+            "packages": ["collab-core", "dotenv"]
         }
     ]
 }
@@ -186,7 +186,7 @@ git ls-remote https://github.com/microsoft/vcpkg.git HEAD
 {
     "name": "my-project",
     "version-string": "0.0.1",
-    "dependencies": ["libdotenv"]
+    "dependencies": ["dotenv"]
 }
 ```
 
@@ -195,8 +195,8 @@ git ls-remote https://github.com/microsoft/vcpkg.git HEAD
 **`CMakeLists.txt`**:
 
 ```cmake
-find_package(libdotenv CONFIG REQUIRED)
-target_link_libraries(myapp PRIVATE collab::libdotenv)
+find_package(dotenv CONFIG REQUIRED)
+target_link_libraries(myapp PRIVATE collab::dotenv)
 ```
 
 For more details, see the [Packages registry README](https://github.com/BuildWithCollab/Packages).
@@ -204,15 +204,15 @@ For more details, see the [Packages registry README](https://github.com/BuildWit
 #### Then
 
 ```cpp
-#include <collab/env.hpp>
+#include <dotenv.hpp>
 ```
 
 ### API Reference
 
-#### `EnvVar`
+#### `EnvironmentVariable`
 
 ```cpp
-struct EnvVar {
+struct EnvironmentVariable {
     std::string key;
     std::string value;
 };
@@ -221,9 +221,9 @@ struct EnvVar {
 #### Parsing (from string content, no filesystem)
 
 ```cpp
-auto parse_dotenv(std::string_view content) -> std::vector<EnvVar>;
-auto parse_yaml(std::string_view content) -> std::vector<EnvVar>;
-auto parse_json(std::string_view content) -> std::vector<EnvVar>;
+auto parse_dotenv(std::string_view content) -> std::vector<EnvironmentVariable>;
+auto parse_yaml(std::string_view content) -> std::vector<EnvironmentVariable>;
+auto parse_json(std::string_view content) -> std::vector<EnvironmentVariable>;
 ```
 
 Parse `.env`, YAML, or JSON format content. These take raw string content, not file paths — useful for testing or when you already have the content in memory.
@@ -231,7 +231,7 @@ Parse `.env`, YAML, or JSON format content. These take raw string content, not f
 #### File Loading
 
 ```cpp
-auto load_file(const std::filesystem::path& path) -> std::vector<EnvVar>;
+auto load_file(const std::filesystem::path& path) -> std::vector<EnvironmentVariable>;
 ```
 
 Load a single file, auto-detecting format by extension (`.yaml`/`.yml` → YAML, `.json` → JSON, everything else → dotenv).
@@ -249,7 +249,7 @@ Walk from `from` to the filesystem root, collecting all `.env`, `.env.yaml`, `.e
 
 ```cpp
 auto load(const std::filesystem::path& from = std::filesystem::current_path())
-    -> std::vector<EnvVar>;
+    -> std::vector<EnvironmentVariable>;
 ```
 
 Walk to root, load all env files, merge, and expand `${VAR}` references. Closest file wins. This is the equivalent of Python's `dotenv_values()`.
@@ -257,9 +257,9 @@ Walk to root, load all env files, merge, and expand `${VAR}` references. Closest
 #### Operations
 
 ```cpp
-auto merge(std::vector<EnvVar> vars) -> std::vector<EnvVar>;
-auto expand(std::vector<EnvVar>& vars) -> void;
-auto apply(const std::vector<EnvVar>& vars) -> void;
+auto merge(std::vector<EnvironmentVariable> vars) -> std::vector<EnvironmentVariable>;
+auto expand(std::vector<EnvironmentVariable>& vars) -> void;
+auto apply(const std::vector<EnvironmentVariable>& vars) -> void;
 ```
 
 | Function | What it does |
@@ -312,13 +312,13 @@ xmake -y
 Tests use [Catch2](https://github.com/catchorg/Catch2).
 
 ```bash
-xmake run libdotenv-tests                         # run all tests
-xmake run libdotenv-tests "[parse_dotenv]"        # just dotenv parsing
-xmake run libdotenv-tests "[parse_yaml]"          # just yaml parsing
-xmake run libdotenv-tests "[parse_json]"          # just json parsing
-xmake run libdotenv-tests "[merge]"               # just merge logic
-xmake run libdotenv-tests "[expand]"              # just variable expansion
-xmake run libdotenv-tests "[load]"                # just file loading + discovery
-xmake run libdotenv-tests "[apply]"               # just env application
-xmake run libdotenv-tests "[cli]"                 # just CLI integration tests
+xmake run dotenv-tests                         # run all tests
+xmake run dotenv-tests "[parse_dotenv]"        # just dotenv parsing
+xmake run dotenv-tests "[parse_yaml]"          # just yaml parsing
+xmake run dotenv-tests "[parse_json]"          # just json parsing
+xmake run dotenv-tests "[merge]"               # just merge logic
+xmake run dotenv-tests "[expand]"              # just variable expansion
+xmake run dotenv-tests "[load]"                # just file loading + discovery
+xmake run dotenv-tests "[apply]"               # just env application
+xmake run dotenv-tests "[cli]"                 # just CLI integration tests
 ```

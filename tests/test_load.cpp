@@ -1,13 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <collab/env/load.hpp>
-#include <collab/env/parse.hpp>
+#include <dotenv/load.hpp>
+#include <dotenv/parse.hpp>
 
 #include <filesystem>
 #include <fstream>
 
 namespace fs = std::filesystem;
-using namespace collab::env;
+using namespace dotenv;
 
 // ── helper: create a temp directory tree with env files ──────────────────
 

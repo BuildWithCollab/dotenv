@@ -1,11 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <collab/env/load.hpp>
+#include <dotenv/load.hpp>
 
 #include <cstdlib>
 #include <string>
 
-using namespace collab::env;
+using namespace dotenv;
 
 static auto get_env(const char* key) -> std::string {
     auto val = std::getenv(key);

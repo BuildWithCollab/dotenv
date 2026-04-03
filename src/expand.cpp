@@ -4,10 +4,10 @@
 #include <cstdlib>
 #include <string>
 
-namespace collab::env::detail {
+namespace dotenv::detail {
 
 static auto expand_value(const std::string& value,
-                         const std::vector<EnvVar>& vars) -> std::string {
+                         const std::vector<EnvironmentVariable>& vars) -> std::string {
     std::string result;
     size_t i = 0;
 
@@ -55,7 +55,7 @@ static auto expand_value(const std::string& value,
     return result;
 }
 
-auto expand(std::vector<EnvVar>& vars) -> void {
+auto expand(std::vector<EnvironmentVariable>& vars) -> void {
     constexpr int max_iterations = 20;
 
     for (int iter = 0; iter < max_iterations; iter++) {
@@ -71,4 +71,4 @@ auto expand(std::vector<EnvVar>& vars) -> void {
     }
 }
 
-}  // namespace collab::env::detail
+}  // namespace dotenv::detail
