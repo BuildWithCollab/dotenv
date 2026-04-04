@@ -4,10 +4,6 @@ add_rules("mode.release")
 set_defaultmode("release")
 set_languages("c++23")
 
-if is_plat("windows") then
-    set_runtimes("MT")
-end
-
 includes("xmake/collab.lua")
 
 -- BuildWithCollab package registry
