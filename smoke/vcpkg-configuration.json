@@ -8,7 +8,7 @@
         {
             "kind": "git",
             "repository": "https://github.com/BuildWithCollab/Packages.git",
-            "baseline": "05360df41700c97cf12bfdf32f0cba8a8305fa97",
+            "baseline": "1c8e25d3d992d3eb18fa2ad540b985497b641f7c",
             "packages": ["collab-core", "collab-process", "dotenv"]
         }
     ]
