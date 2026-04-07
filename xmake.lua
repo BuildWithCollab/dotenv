@@ -11,7 +11,6 @@ add_repositories("BuildWithCollab https://github.com/BuildWithCollab/Packages.gi
 
 -- Collab dependencies (local or registry, depending on env vars)
 add_collab_requires("collab-core")
-add_collab_requires("collab-process")
 
 option("build_tests")
     set_default(true)
@@ -40,6 +39,7 @@ target("dotenv")
     add_packages("nlohmann_json", "yaml-cpp", { public = true })
 
 if get_config("build_executable") then
+    add_collab_requires("collab-process")
     target("env")
         set_kind("binary")
         add_files("cli/main.cpp")

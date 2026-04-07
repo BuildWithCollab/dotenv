@@ -4,6 +4,6 @@
 
 namespace dotenv {
 
-inline constexpr collab::Version version{1, 0, 3};
+inline constexpr collab::Version version{1, 0, 4};
 
 }  // namespace dotenv
